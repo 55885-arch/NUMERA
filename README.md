@@ -297,7 +297,26 @@ Question template fields: `topic_id`, `grade_band`, `difficulty_tier`, `prompt_t
 
 ---
 
-## 9. Status & next steps
+## 9. School project context
+
+This is a school project for **วิชาโครงงานคอมพิวเตอร์ 2, ภาคเรียนที่ 2 ปีการศึกษา 2569**.
+The graded outcome is **real use + evidence**, not winning a contest
+(*"ไม่จำเป็นต้องชนะการประกวด ถ้าเราสร้างประโยชน์จริงก็ถือว่าประสบความสำเร็จแล้ว"*).
+
+| School timeline | Work | NUMERA target |
+|---|---|---|
+| 19–31 ต.ค. 2569 | find users and contests | proposal done |
+| **พ.ย. 2569** | build, improve, contact users, prepare trial | MVP, P0 only, 1 topic (จำนวนเต็ม) |
+| ธ.ค. 2569 | trial / publish / enter a contest | trial with 1 class, 2–3 weeks |
+| 1–31 ม.ค. 2570 | collect data, improve, summarise evidence | survey, fixes, extras (AI hints, rank) |
+| 1–28 ก.พ. 2570 | analyse, present | **Computer Project Impact Report** |
+
+Because of this timeline, the proposal's 8-week plan (§8) is compressed: P0 features
+must be trial-ready by early ธ.ค. 2569. Gemini hints, rank and Codex move to ม.ค. 2570.
+
+Draft answers for the group worksheet (sections 1–8): [`docs/school-worksheet-draft.md`](docs/school-worksheet-draft.md).
+
+## 10. Status & next steps
 
 - [x] Proposal read and summarised
 - [x] System diagrams reviewed and corrected (server-side checks, paper → progress, hint limit, statuses)
