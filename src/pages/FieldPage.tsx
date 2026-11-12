@@ -3,15 +3,13 @@ import { recordAnswer, studentLevel, useDB, getDB, type User } from '../data/sto
 import { generateQuestion, newSeed, type Tier } from '../engine';
 import { freeFieldTier } from '../game/rules';
 import type { FieldHandle, FieldMonster } from '../game/field';
+import { ChevronLeft } from 'lucide-react';
 import { Battle } from '../components/Battle';
+import { MONSTER_NAME, type MonsterKind } from '../components/Art';
 import { Bar, Link } from '../components/ui';
 
-const MONSTERS: Record<Tier, { name: string; art: string }> = {
-  1: { name: 'สไลม์เลขลบ', art: '🟡' },
-  2: { name: 'ภูตจำนวนเต็ม', art: '👻' },
-  3: { name: 'อัศวินเครื่องหมาย', art: '🛡️' },
-  4: { name: 'Integer Sentinel', art: '🗿' },
-};
+/** Free Field monster for each question tier. */
+const MONSTERS: Record<Tier, MonsterKind> = { 1: 'slime', 2: 'wisp', 3: 'golem', 4: 'sentinel' };
 
 export function FieldPage({ user }: { user: User }) {
   const db = useDB();
@@ -53,12 +51,13 @@ export function FieldPage({ user }: { user: User }) {
     <div className="page">
       <div className="field-hud">
         <Link to="/student" className="btn ghost">
-          ← กลับ Hub
+          <ChevronLeft className="icon" aria-hidden />
+          กลับหน้าหลัก
         </Link>
         <div className="hud-level">
-          <strong>Lv.{lv.level}</strong>
-          <Bar value={lv.into} max={lv.need} label="EXP สู่เลเวลถัดไป" />
-          <span className="muted small">
+          <span className="mono">Lv.{lv.level}</span>
+          <Bar value={lv.into} max={lv.need} label="EXP สู่เลเวลถัดไป" tone="accent" />
+          <span className="muted small mono">
             {lv.into}/{lv.need} EXP
           </span>
         </div>
@@ -70,7 +69,7 @@ export function FieldPage({ user }: { user: User }) {
         {encounter && (
           <div className="overlay">
             <Battle
-              monster={{ ...MONSTERS[encounter.tier], level: encounter.level }}
+              monster={{ kind: MONSTERS[encounter.tier], name: MONSTER_NAME[MONSTERS[encounter.tier]], level: encounter.level }}
               hitsToDefeat={3}
               makeQuestion={(i) => generateQuestion('INT', encounter.tier, encounter.seed + i)}
               onQuestionDone={(question, correct, hintsUsed) =>

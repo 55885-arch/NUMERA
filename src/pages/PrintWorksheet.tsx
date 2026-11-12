@@ -1,5 +1,6 @@
 import { className, useDB, type User } from '../data/store';
 import { generateSet, getTopic, TIER_LABEL } from '../engine';
+import { ChevronLeft, Printer } from 'lucide-react';
 import { Empty, Link } from '../components/ui';
 
 /** A4 worksheet (student copy) or answer key (teacher copy). The two are never mixed. */
@@ -11,7 +12,7 @@ export function PrintWorksheet({ user, worksheetId, showKey }: { user: User; wor
     return (
       <div className="page narrow">
         <Empty>ไม่พบใบงานนี้</Empty>
-        <Link to="/teacher" className="btn">← กลับ</Link>
+        <Link to="/teacher" className="btn">กลับ</Link>
       </div>
     );
   }
@@ -21,10 +22,14 @@ export function PrintWorksheet({ user, worksheetId, showKey }: { user: User; wor
   return (
     <div className="print-page">
       <div className="print-toolbar no-print">
-        <Link to={`/teacher/class/${c.id}`} className="btn ghost">← กลับห้องเรียน</Link>
+        <Link to={`/teacher/class/${c.id}`} className="btn ghost">
+          <ChevronLeft className="icon" aria-hidden />
+          กลับห้องเรียน
+        </Link>
         <span className="muted small">{showKey ? 'เฉลยสำหรับครู (อย่าแจกนักเรียน)' : 'ใบงานสำหรับนักเรียน (ไม่มีเฉลย)'}</span>
         <button className="btn primary" onClick={() => window.print()}>
-          🖨️ พิมพ์ / บันทึกเป็น PDF
+          <Printer className="icon" aria-hidden />
+          พิมพ์ / บันทึกเป็น PDF
         </button>
       </div>
 
@@ -70,7 +75,7 @@ export function PrintWorksheet({ user, worksheetId, showKey }: { user: User; wor
                 </div>
               ) : (
                 <>
-                  <div className="work-box">วิธีคิด</div>
+                  <div className="work-box graph-paper">วิธีคิด</div>
                   <div className="answer-line">ตอบ ..............................</div>
                 </>
               )}

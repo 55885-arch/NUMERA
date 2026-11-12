@@ -1,10 +1,11 @@
 import { useState, type FormEvent } from 'react';
+import { ArrowRight, Castle, Trees } from 'lucide-react';
 import {
   assignmentState, className, classesOfStudent, joinClass, runsOf, studentLevel, studentMastery, useDB, type User,
 } from '../data/store';
 import { getTopic } from '../engine';
 import { freeFieldTier, titleFor } from '../game/rules';
-import { Bar, Empty, Link, MasteryBadge, StateBadge, thaiDate } from '../components/ui';
+import { Bar, Empty, LevelRing, Link, MasteryBadge, StateBadge, thaiDate } from '../components/ui';
 
 export function StudentHome({ user }: { user: User }) {
   const db = useDB();
@@ -15,63 +16,81 @@ export function StudentHome({ user }: { user: User }) {
   const mastery = studentMastery(db, user.id, 'INT');
   const assignments = db.assignments.filter((a) => classes.some((c) => c.id === a.classId));
   const wrong = db.attempts.filter((a) => a.studentId === user.id && !a.correct).slice(-5).reverse();
+  const title = classes[0] ? `${className(classes[0])}` : 'ภารกิจของฉัน';
 
   function join(e: FormEvent) {
     e.preventDefault();
     const err = joinClass(user.id, joinCode);
-    setJoinMsg(err ?? 'เข้าร่วมห้องเรียนสำเร็จ!');
+    setJoinMsg(err ?? 'เข้าร่วมห้องเรียนแล้ว');
     if (!err) setJoinCode('');
   }
 
   return (
     <div className="page">
+      <div className="page-head">
+        <div>
+          <span className="muted small">{classes[0] ? `ปีการศึกษา ${classes[0].academicYear} · ภาคเรียนที่ ${classes[0].semester}` : 'ยังไม่ได้เข้าร่วมห้องเรียน'}</span>
+          <h1>{title}</h1>
+        </div>
+      </div>
+
       <div className="grid two">
-        <section className="card character">
-          <div className="avatar" aria-hidden>🧙</div>
+        <section className="card character" aria-label="ตัวละครของฉัน">
+          <LevelRing level={lv.level} into={lv.into} need={lv.need} />
           <div className="grow">
-            <h2>{user.name}</h2>
-            <div className="muted">ฉายา: {titleFor(lv.level)}</div>
+            <h2 style={{ margin: 0 }}>{user.name}</h2>
+            <div className="secondary small">{titleFor(lv.level)}</div>
             <div className="level-row">
-              <strong>Character Level {lv.level}</strong>
-              <span className="muted small">
-                EXP {lv.into}/{lv.need}
+              <span className="small muted">EXP สู่เลเวล {lv.level + 1}</span>
+              <span className="small mono">
+                {lv.into}/{lv.need}
               </span>
             </div>
-            <Bar value={lv.into} max={lv.need} label="EXP สู่เลเวลถัดไป" />
+            <Bar value={lv.into} max={lv.need} label="EXP สู่เลเวลถัดไป" tone="accent" />
             <div className="mastery-row">
-              Topic Mastery · {getTopic('INT').name}: <MasteryBadge mastery={mastery} />
+              <span className="secondary">
+                Topic Mastery · {getTopic('INT').name}
+              </span>
+              <MasteryBadge mastery={mastery} />
             </div>
           </div>
         </section>
 
         <section className="card">
-          <h2>My Classroom</h2>
+          <h2>ห้องเรียน</h2>
           {classes.length === 0 ? (
-            <Empty>ยังไม่ได้เข้าร่วมห้องเรียน ขอรหัสเข้าร่วมจากครู</Empty>
+            <Empty>ขอรหัสเข้าร่วมจากครู แล้วกรอกด้านล่าง</Empty>
           ) : (
             <ul className="plain">
               {classes.map((c) => (
                 <li key={c.id}>
-                  <strong>{className(c)}</strong>
+                  <div>{className(c)}</div>
                   <div className="muted small">
-                    ปีการศึกษา {c.academicYear} ภาคเรียนที่ {c.semester}
+                    ปีการศึกษา {c.academicYear} · ภาคเรียนที่ {c.semester}
                   </div>
                 </li>
               ))}
             </ul>
           )}
           <form onSubmit={join} className="inline-form">
-            <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="รหัสเข้าร่วม เช่น INT692" aria-label="รหัสเข้าร่วมห้องเรียน" />
+            <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder="รหัสเข้าร่วม" aria-label="รหัสเข้าร่วมห้องเรียน" className="mono" />
             <button className="btn">เข้าร่วม</button>
           </form>
-          {joinMsg && <p className="small" role="status">{joinMsg}</p>}
+          {joinMsg && (
+            <p className="small secondary" role="status">
+              {joinMsg}
+            </p>
+          )}
         </section>
       </div>
 
-      <h2 className="section-title">Quest Board</h2>
+      <h2 className="section-title">ภารกิจ</h2>
       <div className="grid two">
         <section className="card quest">
-          <h3>🏰 ดันเจียน (งานจากครู)</h3>
+          <h3>
+            <Castle className="icon" aria-hidden />
+            ดันเจียนจากครู
+          </h3>
           {assignments.length === 0 ? (
             <Empty>ยังไม่มีภารกิจจากครู</Empty>
           ) : (
@@ -82,14 +101,14 @@ export function StudentHome({ user }: { user: User }) {
                 return (
                   <li key={a.id} className="quest-item">
                     <div>
-                      <strong>{a.title}</strong>
+                      <div>{a.title}</div>
                       <div className="muted small">
-                        ส่งภายใน {thaiDate(a.dueDate)} · ใช้สิทธิ์ {used}/{a.maxAttempts}
+                        ส่งภายใน {thaiDate(a.dueDate)} · ใช้สิทธิ์ <span className="mono">{used}/{a.maxAttempts}</span>
                       </div>
                     </div>
                     <div className="quest-actions">
                       <StateBadge state={state} />
-                      <Link to={`/student/dungeon/${a.id}`} className="btn primary small-btn">
+                      <Link to={`/student/dungeon/${a.id}`} className={`btn small-btn ${state === 'passed' ? '' : 'primary'}`}>
                         {state === 'in_progress' ? 'ทำต่อ' : state === 'assigned' ? 'เริ่ม' : 'ดูผล'}
                       </Link>
                     </div>
@@ -101,27 +120,32 @@ export function StudentHome({ user }: { user: User }) {
         </section>
 
         <section className="card quest">
-          <h3>🌳 Free Field: Numberwood</h3>
-          <p>
-            เดินสำรวจและสู้กับมอนสเตอร์เพื่อฝึกฝน มอนสเตอร์ปรับระดับตาม Character Level ของคุณ (ตอนนี้เจอโจทย์ระดับ T
-            {freeFieldTier(lv.level)})
+          <h3>
+            <Trees className="icon" aria-hidden />
+            Free Field · Numberwood
+          </h3>
+          <p className="secondary">
+            เดินสำรวจและฝึกกับมอนสเตอร์ ระดับโจทย์ตาม Character Level ของคุณ ตอนนี้เป็น <span className="mono">T{freeFieldTier(lv.level)}</span>
           </p>
-          <Link to="/student/field" className="btn primary">
-            เข้าสู่ Free Field →
+          <Link to="/student/field" className="btn">
+            เข้าสู่ Free Field
+            <ArrowRight className="icon" aria-hidden />
           </Link>
         </section>
       </div>
 
-      <h2 className="section-title">Learning Record: ข้อที่ควรทบทวน</h2>
+      <h2 className="section-title">ข้อที่ควรทบทวน</h2>
       <section className="card">
         {wrong.length === 0 ? (
-          <Empty>ยังไม่มีข้อที่ทำผิด เยี่ยมมาก!</Empty>
+          <Empty>ยังไม่มีข้อที่ทำผิด</Empty>
         ) : (
           <ul className="plain record">
             {wrong.map((a) => (
               <li key={a.id}>
                 <span>{a.prompt}</span>
-                <span className="muted small">คำตอบที่ถูก: {a.answer}</span>
+                <span className="muted small">
+                  คำตอบ <span className="mono">{a.answer}</span>
+                </span>
               </li>
             ))}
           </ul>

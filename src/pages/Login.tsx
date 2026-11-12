@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
+import { Check } from 'lucide-react';
 import { createUser, login, resetDemo, useDB, type Role } from '../data/store';
 import { go } from '../components/ui';
+import { Monster } from '../components/Art';
 
 export function Login() {
   const db = useDB();
@@ -23,12 +25,38 @@ export function Login() {
   const students = db.users.filter((u) => u.role === 'student');
 
   return (
-    <div className="page narrow">
-      <section className="hero">
-        <div className="hero-art" aria-hidden>✨🔢🐉</div>
-        <h1>NUMERA</h1>
-        <p className="tagline">อาณาจักรแห่งตัวเลข · LEARN • CAST • LEVEL UP</p>
-        <p>เปลี่ยนโจทย์คณิตศาสตร์ให้กลายเป็นพลังเวท เปลี่ยนการบ้านให้กลายเป็นภารกิจของทั้งห้องเรียน</p>
+    <div className="page">
+      <section className="hero-split">
+        <div className="hero-text">
+          <h1>แก้โจทย์คณิตศาสตร์ ม.1–ม.3 เพื่อร่ายเวท และพิชิตดันเจียน ที่ครูมอบหมาย</h1>
+          <p>ครูเลือกบทเรียนตามหลักสูตร สสวท. นักเรียนฝึกในเกม 2D ได้คำใบ้ทีละขั้นเมื่อติด และครูพิมพ์ใบงานให้ผู้ที่ไม่มีอุปกรณ์ได้</p>
+        </div>
+
+        <div className="preview" aria-label="ตัวอย่างหน้าต่อสู้">
+          <div className="preview-top">
+            <div className="monster-art">
+              <Monster kind="golem" size={88} />
+            </div>
+            <div className="grow">
+              <div className="monster-name">
+                โกเลมตัวเลข <span className="muted small mono">Lv.10</span>
+              </div>
+              <div className="hp" aria-label="พลังชีวิต 1 จาก 2">
+                <span className="on" />
+                <span />
+              </div>
+              <span className="small muted">ห้อง 2 · Practice · T2</span>
+            </div>
+          </div>
+          <div className="prompt">−11 − (−52) = ?</div>
+          <div className="answer-input graph-paper" style={{ display: 'grid', placeItems: 'center', borderRadius: 8 }}>
+            41
+          </div>
+          <p className="feedback good">
+            <Check className="icon" aria-hidden />
+            ถูกต้อง · Equation Slash +15 EXP
+          </p>
+        </div>
       </section>
 
       <div className="grid two">
@@ -38,7 +66,7 @@ export function Login() {
           <div className="chips">
             {teachers.map((u) => (
               <button key={u.id} className="btn" onClick={() => enter(u.id, 'teacher')}>
-                👩‍🏫 {u.name}
+                {u.name}
               </button>
             ))}
           </div>
@@ -46,7 +74,7 @@ export function Login() {
           <div className="chips">
             {students.map((u) => (
               <button key={u.id} className="btn" onClick={() => enter(u.id, 'student')}>
-                🧙 {u.name}
+                {u.name}
               </button>
             ))}
           </div>
@@ -57,7 +85,7 @@ export function Login() {
           <form onSubmit={signUp} className="form">
             <label>
               ชื่อที่แสดง
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="เช่น ชื่อเล่น หรือนามแฝง" maxLength={30} required />
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="ชื่อเล่นหรือนามแฝง" maxLength={30} required />
             </label>
             <fieldset className="radio-row">
               <legend>บทบาท</legend>
@@ -74,7 +102,7 @@ export function Login() {
       </div>
 
       <p className="note">
-        ต้นแบบ (Prototype): ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น และยังไม่มีรหัสผ่าน รุ่นจริงจะใช้ Supabase Auth ·{' '}
+        ต้นแบบ: ข้อมูลเก็บในเบราว์เซอร์เครื่องนี้เท่านั้น และยังไม่มีรหัสผ่าน รุ่นจริงจะใช้ Supabase Auth ·{' '}
         <button
           className="linklike"
           onClick={() => {

@@ -1,9 +1,11 @@
 import { useRef, useState, type FormEvent } from 'react';
+import { Check, Info, Lightbulb, Wand, X } from 'lucide-react';
 import { checkAnswer, TIER_LABEL, type Question } from '../engine';
+import { Monster, type MonsterKind } from './Art';
 
 export interface BattleMonster {
+  kind: MonsterKind;
   name: string;
-  art: string;
   level: number;
 }
 
@@ -29,9 +31,16 @@ interface Props {
 }
 
 const SPELL = { 1: 'Spark Bolt', 2: 'Number Burst', 3: 'Equation Slash', 4: 'Mastery Nova' } as const;
-const HINT_TITLE = ['คำใบ้ 1: ชี้แนวคิด', 'คำใบ้ 2: ชี้ขั้นตอน', 'คำใบ้ 3: ตัวอย่างใกล้เคียง'];
+const HINT_TITLE = ['คำใบ้ 1 · แนวคิด', 'คำใบ้ 2 · ขั้นตอน', 'คำใบ้ 3 · ตัวอย่างใกล้เคียง'];
+const CALC = 'คำนวณ ';
 
 type Feedback = { kind: 'good' | 'bad' | 'info'; text: string } | null;
+
+function FeedbackIcon({ kind }: { kind: 'good' | 'bad' | 'info' }) {
+  if (kind === 'good') return <Check className="icon" aria-hidden />;
+  if (kind === 'bad') return <X className="icon" aria-hidden />;
+  return <Info className="icon" aria-hidden />;
+}
 
 export function Battle(props: Props) {
   const { monster, hitsToDefeat, totalQuestions, makeQuestion, onQuestionDone } = props;
@@ -69,7 +78,7 @@ export function Battle(props: Props) {
   function revealSolution() {
     onQuestionDone(question, false, 3);
     setShowSolution(true);
-    setFeedback({ kind: 'info', text: 'ไม่เป็นไร! อ่านวิธีทำด้านล่าง แล้วไปข้อต่อไป (ไม่เสีย EXP ที่สะสมไว้)' });
+    setFeedback({ kind: 'info', text: 'อ่านวิธีทำด้านล่าง แล้วไปข้อต่อไป · EXP ที่สะสมไว้ไม่ลดลง' });
   }
 
   function submit(e?: FormEvent) {
@@ -86,10 +95,10 @@ export function Battle(props: Props) {
       setHits(h);
       setSessionExp((x) => x + exp);
       setSessionCorrect((x) => x + 1);
-      setEffect({ text: `${SPELL[question.tier]}!${exp ? ` +${exp} EXP` : ''}`, n: Date.now() });
+      setEffect({ text: `${SPELL[question.tier]} +${exp} EXP`, n: Date.now() });
       setFeedback({
         kind: 'good',
-        text: exp ? 'ถูกต้อง! ร่ายเวทสำเร็จ' : 'ถูกต้อง! (ข้อนี้เคยทำแล้ว จึงได้ EXP น้อยลง ลองโจทย์ใหม่ ๆ ดูนะ)',
+        text: exp ? 'ถูกต้อง · ร่ายเวทสำเร็จ' : 'ถูกต้อง · ข้อนี้เคยทำแล้ว จึงได้ EXP น้อยลง ลองโจทย์ใหม่ ๆ ดู',
       });
       nextQuestion(h);
       return;
@@ -98,7 +107,7 @@ export function Battle(props: Props) {
       setHintLevel(hintLevel + 1);
       setFeedback({
         kind: 'bad',
-        text: `${result.mistake ?? 'ยังไม่ถูก ลองคิดใหม่อีกครั้ง'} (เปิดคำใบ้ขั้นที่ ${hintLevel + 1} ให้แล้ว)`,
+        text: `${result.mistake ?? 'ยังไม่ถูก ลองคิดใหม่อีกครั้ง'} · เปิดคำใบ้ขั้นที่ ${hintLevel + 1} ให้แล้ว`,
       });
     } else {
       revealSolution();
@@ -121,11 +130,20 @@ export function Battle(props: Props) {
     return (
       <div className="battle card">
         <div className="battle-result">
-          <div className="big-art" aria-hidden>{defeated ? '🏆' : '💨'}</div>
-          <h2>{defeated ? `ชนะ ${monster.name}!` : `${monster.name} ถอยหนีไป`}</h2>
-          <p>
-            ตอบถูก {sessionCorrect} ข้อ · ได้รับ <strong>+{sessionExp} EXP</strong>
-          </p>
+          <div style={{ opacity: defeated ? 0.35 : 1 }}>
+            <Monster kind={monster.kind} size={96} />
+          </div>
+          <h2>{defeated ? `ชนะ${monster.name}` : `${monster.name}ถอยหนีไป`}</h2>
+          <div className="result-figures">
+            <div>
+              <span className="small muted">ตอบถูก</span>
+              <strong>{sessionCorrect}</strong>
+            </div>
+            <div>
+              <span className="small muted">ได้รับ EXP</span>
+              <strong>+{sessionExp}</strong>
+            </div>
+          </div>
           <button className="btn primary" autoFocus onClick={() => props.onFinish({ defeated, correct: sessionCorrect, exp: sessionExp })}>
             ไปต่อ
           </button>
@@ -134,12 +152,14 @@ export function Battle(props: Props) {
     );
   }
 
+  const isCalc = question.prompt.startsWith(CALC);
+
   return (
     <div className="battle card">
       <div className="battle-top">
         <div className="monster">
-          <div key={hits} className={`monster-art ${hits > (props.startHits ?? 0) ? 'hit' : ''}`} aria-hidden>
-            {monster.art}
+          <div key={hits} className={`monster-art ${hits > (props.startHits ?? 0) ? 'hit' : ''}`}>
+            <Monster kind={monster.kind} size={88} label={monster.name} />
           </div>
           {effect && (
             <div key={effect.n} className="spell-fx" role="status">
@@ -149,30 +169,40 @@ export function Battle(props: Props) {
         </div>
         <div className="monster-info">
           <div className="monster-name">
-            {monster.name} <span className="muted">Lv.{monster.level}</span>
+            {monster.name} <span className="muted small mono">Lv.{monster.level}</span>
           </div>
           <div className="hp" aria-label={`พลังชีวิต ${hp} จาก ${hitsToDefeat}`}>
-            <div className="hp-fill" style={{ width: `${(hp / hitsToDefeat) * 100}%` }} />
+            {Array.from({ length: hitsToDefeat }, (_, i) => (
+              <span key={i} className={i < hp ? 'on' : ''} />
+            ))}
           </div>
           <div className="muted small">
-            HP {hp}/{hitsToDefeat}
+            <span className="mono">
+              HP {hp}/{hitsToDefeat}
+            </span>
             {totalQuestions !== undefined && ` · ข้อ ${Math.min(index + 1, totalQuestions)}/${totalQuestions}`}
           </div>
         </div>
       </div>
 
       <div className="question">
-        <div className="muted small">โจทย์ · {TIER_LABEL[question.tier]}</div>
-        <div className="prompt">{question.prompt}</div>
+        <div className="muted small">
+          {isCalc ? 'คำนวณ' : 'โจทย์ปัญหา'} · {TIER_LABEL[question.tier]}
+        </div>
+        {isCalc ? (
+          <div className="prompt">{question.prompt.slice(CALC.length).replace(/-/g, '−')} = ?</div>
+        ) : (
+          <div className="prompt words">{question.prompt}</div>
+        )}
       </div>
 
       <form className="answer-row" onSubmit={submit}>
-        <button type="button" className="btn" onClick={toggleSign} aria-label="สลับเครื่องหมายบวก/ลบ" disabled={showSolution}>
+        <button type="button" className="btn" onClick={toggleSign} aria-label="สลับเครื่องหมายบวกลบ" disabled={showSolution}>
           ±
         </button>
         <input
           ref={inputRef}
-          className="answer-input"
+          className="answer-input graph-paper"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="คำตอบ"
@@ -183,14 +213,15 @@ export function Battle(props: Props) {
           disabled={showSolution}
         />
         <button type="submit" className="btn primary" disabled={showSolution}>
-          ร่ายสกิล ✨
+          <Wand className="icon" aria-hidden />
+          ร่ายสกิล
         </button>
       </form>
 
       {feedback && (
         <p className={`feedback ${feedback.kind}`} role="status">
-          {feedback.kind === 'good' ? '✔ ' : feedback.kind === 'bad' ? '✘ ' : 'ℹ '}
-          {feedback.text}
+          <FeedbackIcon kind={feedback.kind} />
+          <span>{feedback.text}</span>
         </p>
       )}
 
@@ -206,7 +237,7 @@ export function Battle(props: Props) {
       )}
 
       {showSolution && (
-        <div className="solution">
+        <div className="solution graph-paper">
           <strong>วิธีทำ</strong>
           {question.solution.map((line, i) => (
             <div key={i} className="mono">
@@ -214,14 +245,15 @@ export function Battle(props: Props) {
             </div>
           ))}
           <button className="btn primary" autoFocus onClick={() => nextQuestion(hits)}>
-            ข้อต่อไป →
+            ข้อต่อไป
           </button>
         </div>
       )}
 
       <div className="battle-actions">
         <button className="btn ghost" onClick={askHint} disabled={showSolution}>
-          💡 {hintLevel < 3 ? `ขอคำใบ้ (${hintLevel}/3)` : 'ดูวิธีทำ'}
+          <Lightbulb className="icon" aria-hidden />
+          {hintLevel < 3 ? `ขอคำใบ้ ${hintLevel}/3` : 'ดูวิธีทำ'}
         </button>
         {props.onFlee && (
           <button className="btn ghost" onClick={props.onFlee}>

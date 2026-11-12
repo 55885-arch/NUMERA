@@ -5,14 +5,15 @@ import {
   type AssignmentState, type Classroom, type DB, type Mark, type User, type Worksheet,
 } from '../data/store';
 import { generateSet, getTopic, templateName, TIER_LABEL, TIERS, TOPICS, type Tier } from '../engine';
+import { Castle, ChartColumn, Check, ChevronLeft, ClipboardCheck, KeyRound, PenLine, Printer, type LucideIcon } from 'lucide-react';
 import { Bar, Empty, Link, MasteryBadge, StateBadge, thaiDate } from '../components/ui';
 
 type Tab = 'report' | 'dungeons' | 'attendance' | 'worksheets';
-const TABS: { id: Tab; label: string }[] = [
-  { id: 'report', label: '📊 รายงาน' },
-  { id: 'dungeons', label: '🏰 ดันเจียน' },
-  { id: 'attendance', label: '✅ เช็กชื่อ' },
-  { id: 'worksheets', label: '🖨️ ใบงาน' },
+const TABS: { id: Tab; label: string; Icon: LucideIcon }[] = [
+  { id: 'report', label: 'รายงาน', Icon: ChartColumn },
+  { id: 'dungeons', label: 'ดันเจียน', Icon: Castle },
+  { id: 'attendance', label: 'เช็กชื่อ', Icon: ClipboardCheck },
+  { id: 'worksheets', label: 'ใบงาน', Icon: Printer },
 ];
 
 export function ClassPage({ user, classId }: { user: User; classId: string }) {
@@ -23,18 +24,21 @@ export function ClassPage({ user, classId }: { user: User; classId: string }) {
     return (
       <div className="page narrow">
         <Empty>ไม่พบห้องเรียนนี้ หรือคุณไม่มีสิทธิ์เข้าถึง</Empty>
-        <Link to="/teacher" className="btn">← ห้องเรียนของฉัน</Link>
+        <Link to="/teacher" className="btn">ห้องเรียนของฉัน</Link>
       </div>
     );
   }
   return (
     <div className="page">
-      <div className="class-head">
+      <div className="page-head">
         <div>
-          <Link to="/teacher" className="muted small">← ห้องเรียนของฉัน</Link>
-          <h1>{className(c)}</h1>
-          <div className="muted">
-            ปีการศึกษา {c.academicYear} ภาคเรียนที่ {c.semester} · {c.curriculum}
+          <Link to="/teacher" className="btn ghost small-btn" >
+            <ChevronLeft className="icon" aria-hidden />
+            ห้องเรียนของฉัน
+          </Link>
+          <h1 style={{ marginTop: 8 }}>{className(c)}</h1>
+          <div className="secondary small">
+            ปีการศึกษา {c.academicYear} · ภาคเรียนที่ {c.semester} · {c.curriculum}
           </div>
         </div>
         <div className="join-code">
@@ -46,6 +50,7 @@ export function ClassPage({ user, classId }: { user: User; classId: string }) {
       <div className="tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'tab active' : 'tab'} onClick={() => setTab(t.id)}>
+            <t.Icon className="icon" aria-hidden />
             {t.label}
           </button>
         ))}
@@ -105,7 +110,8 @@ function ReportTab({ db, c }: { db: DB; c: Classroom }) {
         </div>
       </div>
 
-      <section className="card">
+      <div className="report-grid">
+      <section className="card main">
         <h2>รายบุคคล</h2>
         {c.studentIds.length === 0 ? (
           <Empty>ยังไม่มีนักเรียน แชร์รหัส {c.joinCode} ให้นักเรียนเข้าร่วม หรือเพิ่มชื่อด้านล่าง</Empty>
@@ -115,9 +121,9 @@ function ReportTab({ db, c }: { db: DB; c: Classroom }) {
               <thead>
                 <tr>
                   <th>ชื่อ</th>
-                  <th>Level</th>
-                  <th>Mastery: จำนวนเต็ม</th>
-                  <th>ความถูกต้อง (20 ข้อล่าสุด)</th>
+                  <th className="num">Level</th>
+                  <th>Mastery จำนวนเต็ม</th>
+                  <th>ถูก 20 ข้อล่าสุด</th>
                   {assignments.map((a) => (
                     <th key={a.id}>{a.title}</th>
                   ))}
@@ -135,12 +141,10 @@ function ReportTab({ db, c }: { db: DB; c: Classroom }) {
                       <tr>
                         <td>
                           <button className="linklike" onClick={() => setOpenId(openId === sid ? null : sid)} aria-expanded={openId === sid}>
-                            {openId === sid ? '▾' : '▸'} {userName(db, sid)}
+                            {userName(db, sid)}
                           </button>
                         </td>
-                        <td>
-                          Lv.{lv.level} <span className="muted small">({lv.exp} EXP)</span>
-                        </td>
+                        <td className="num mono">{lv.level}</td>
                         <td>
                           <MasteryBadge mastery={studentMastery(db, sid, 'INT')} />
                         </td>
@@ -150,7 +154,7 @@ function ReportTab({ db, c }: { db: DB; c: Classroom }) {
                           ) : (
                             <div className="acc">
                               <Bar value={acc} max={100} label="ความถูกต้อง" />
-                              <span>{acc}%</span>
+                              <span className="mono small">{acc}%</span>
                             </div>
                           )}
                         </td>
@@ -158,8 +162,7 @@ function ReportTab({ db, c }: { db: DB; c: Classroom }) {
                           const best = bestRun(db, a.id, sid);
                           return (
                             <td key={a.id}>
-                              <StateBadge state={assignmentState(db, a.id, sid)} />
-                              {best && <div className="muted small">ดีที่สุด {best.correct}/{best.total}</div>}
+                              <StateBadge state={assignmentState(db, a.id, sid)} extra={best ? `${best.correct}/${best.total}` : undefined} />
                             </td>
                           );
                         })}
@@ -174,7 +177,7 @@ function ReportTab({ db, c }: { db: DB; c: Classroom }) {
                               <ul>
                                 {wrong.map((w) => (
                                   <li key={w.id}>
-                                    {w.prompt} <span className="muted small">(ตอบที่ถูก {w.answer} · {templateName(w.topicId, w.templateId)})</span>
+                                    {w.prompt} <span className="muted small">· คำตอบ <span className="mono">{w.answer}</span> · {templateName(w.topicId, w.templateId)}</span>
                                   </li>
                                 ))}
                               </ul>
@@ -195,28 +198,31 @@ function ReportTab({ db, c }: { db: DB; c: Classroom }) {
         </form>
       </section>
 
-      <section className="card">
-        <h2>รายหัวข้อ: รูปแบบโจทย์ที่นักเรียนติดมากที่สุด</h2>
+      <section className="card side">
+        <h2>ทั้งห้องติดตรงไหน</h2>
         {byType.length === 0 ? (
           <Empty>ยังไม่มีข้อมูลการทำโจทย์</Empty>
         ) : (
           <ul className="plain type-list">
-            {byType.map(([templateId, s]) => {
+            {byType.map(([templateId, s], i) => {
               const pct = Math.round((s.ok / s.all) * 100);
               return (
                 <li key={templateId}>
-                  <span>{templateName(s.topicId, templateId)}</span>
-                  <Bar value={pct} max={100} label={`ความถูกต้อง ${templateName(s.topicId, templateId)}`} />
-                  <span className="small">
-                    {pct}% <span className="muted">({s.ok}/{s.all})</span>
-                  </span>
+                  <div className="type-row">
+                    <span>{templateName(s.topicId, templateId)}</span>
+                    <span className="mono">
+                      {pct}% <span className="muted">{s.ok}/{s.all}</span>
+                    </span>
+                  </div>
+                  <Bar value={pct} max={100} label={`ความถูกต้อง ${templateName(s.topicId, templateId)}`} tone={i === 0 ? 'bad' : undefined} />
                 </li>
               );
             })}
           </ul>
         )}
-        <p className="muted small">เรียงจากความถูกต้องต่ำสุด ใช้วางแผนสอนซ่อมเสริม · ข้อมูลนี้เห็นเฉพาะครูประจำห้อง</p>
+        <p className="muted small">ถูกน้อยที่สุดอยู่บนสุด ใช้วางแผนสอนซ่อมเสริม · เห็นเฉพาะครูประจำห้อง</p>
       </section>
+      </div>
     </>
   );
 }
@@ -258,10 +264,10 @@ function DungeonTab({ db, c }: { db: DB; c: Classroom }) {
                   {getTopic(a.topicId).name} · สูงสุด {TIER_LABEL[a.maxTier]} · {a.rooms} ห้อง + บอส · {a.questionsPerRoom} ข้อ/ห้อง · ผ่าน {a.passPercent}% · ส่ง {thaiDate(a.dueDate)}
                 </div>
                 <div className="chips small">
-                  <span className="badge state-passed">✔ ผ่าน {count(a.id, 'passed')}</span>
-                  <span className="badge state-in_progress">▶ กำลังทำ {count(a.id, 'in_progress')}</span>
-                  <span className="badge state-needs_practice">↻ ควรฝึกเพิ่ม {count(a.id, 'needs_practice')}</span>
-                  <span className="badge state-assigned">• ยังไม่เริ่ม {count(a.id, 'assigned')}</span>
+                  <StateBadge state="passed" extra={String(count(a.id, 'passed'))} />
+                  <StateBadge state="in_progress" extra={String(count(a.id, 'in_progress'))} />
+                  <StateBadge state="needs_practice" extra={String(count(a.id, 'needs_practice'))} />
+                  <StateBadge state="assigned" extra={String(count(a.id, 'assigned'))} />
                 </div>
               </li>
             ))}
@@ -433,10 +439,17 @@ function WorksheetTab({ db, c }: { db: DB; c: Classroom }) {
                     {db.paperResults.filter((r) => r.worksheetId === w.id).length}/{c.studentIds.length} คน
                   </div>
                   <div className="chips">
-                    <Link to={`/print/${w.id}`} className="btn small-btn">🖨️ ใบงานนักเรียน</Link>
-                    <Link to={`/print/${w.id}/key`} className="btn small-btn">🔑 เฉลยครู</Link>
+                    <Link to={`/print/${w.id}`} className="btn small-btn">
+                      <Printer className="icon" aria-hidden />
+                      ใบงานนักเรียน
+                    </Link>
+                    <Link to={`/print/${w.id}/key`} className="btn small-btn">
+                      <KeyRound className="icon" aria-hidden />
+                      เฉลยครู
+                    </Link>
                     <button className="btn small-btn" onClick={() => setScoring(scoring === w.id ? null : w.id)}>
-                      ✏️ บันทึกคะแนน
+                      <PenLine className="icon" aria-hidden />
+                      บันทึกคะแนน
                     </button>
                   </div>
                 </li>
@@ -529,7 +542,12 @@ function PaperScoring({ db, c, sheet }: { db: DB; c: Classroom; sheet: Worksheet
         <button className="btn primary" onClick={() => savePaperResult(sheet.id, studentId, questions, current)}>
           บันทึกคะแนนของ {userName(db, studentId)}
         </button>
-        {saved && <span className="small" role="status">✔ บันทึกล่าสุด {thaiDate(saved.at)}</span>}
+        {saved && (
+          <span className="badge state-passed" role="status">
+            <Check className="icon" aria-hidden />
+            บันทึกล่าสุด {thaiDate(saved.at)}
+          </span>
+        )}
       </div>
     </section>
   );

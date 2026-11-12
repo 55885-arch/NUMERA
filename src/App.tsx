@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LogOut } from 'lucide-react';
 import { currentUser, logout, useDB } from './data/store';
 import { Link, go } from './components/ui';
 import { Login } from './pages/Login';
@@ -24,9 +25,19 @@ export function App() {
   const db = useDB();
   const user = currentUser(db);
   const parts = useHashPath().split('/').filter(Boolean);
+  // Students play in the ink theme (the game world); teachers work on paper.
+  const theme = user?.role === 'teacher' ? 'theme-paper' : 'theme-ink';
+
+  useEffect(() => {
+    document.body.style.background = theme === 'theme-paper' ? '#f7f4ee' : '#0b0d14';
+  }, [theme]);
 
   if (user?.role === 'teacher' && parts[0] === 'print' && parts[1]) {
-    return <PrintWorksheet user={user} worksheetId={parts[1]} showKey={parts[2] === 'key'} />;
+    return (
+      <div className="theme-paper">
+        <PrintWorksheet user={user} worksheetId={parts[1]} showKey={parts[2] === 'key'} />
+      </div>
+    );
   }
 
   let page;
@@ -38,14 +49,17 @@ export function App() {
   else page = <StudentHome user={user} />;
 
   return (
-    <>
+    <div className={`app ${theme}`}>
       <header className="topbar">
         <Link to={user ? (user.role === 'teacher' ? '/teacher' : '/student') : '/'} className="brand">
-          <span aria-hidden>✨</span> NUMERA
+          <span className="brand-mark" aria-hidden>
+            ±
+          </span>
+          NUMERA
         </Link>
         {user && (
           <div className="topbar-user">
-            <span className="badge role">{user.role === 'teacher' ? 'ครู' : 'นักเรียน'}</span>
+            <span className="role-tag">{user.role === 'teacher' ? 'ครู' : 'นักเรียน'}</span>
             <span className="user-name">{user.name}</span>
             <button
               className="btn ghost small-btn"
@@ -54,12 +68,13 @@ export function App() {
                 go('/');
               }}
             >
+              <LogOut className="icon" aria-hidden />
               ออกจากระบบ
             </button>
           </div>
         )}
       </header>
       <main>{page}</main>
-    </>
+    </div>
   );
 }

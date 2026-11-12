@@ -25,7 +25,7 @@ export interface FieldHandle {
 const W = 960;
 const H = 540;
 /** Monster body colour per question tier (T1..T4). Chosen to stand out from grass and trees. */
-const TIER_COLOURS = [0xffd166, 0xb794f6, 0xf08a4b, 0xe0566e];
+const TIER_COLOURS = [0x7fb069, 0x7cc9bd, 0xa9a39a, 0xc9d1dc]; // slime, wisp, golem, sentinel (match components/Art.tsx)
 
 class FieldScene extends Phaser.Scene {
   private opts: FieldOptions;
@@ -55,8 +55,8 @@ class FieldScene extends Phaser.Scene {
       const y = rnd.between(40, H - 40);
       if (Math.abs(x - W / 2) < 90 && Math.abs(y - H / 2) < 90) continue; // keep the start area free
       this.add.circle(x + 4, y + 6, 22, 0x000000, 0.15);
-      const tree = this.add.circle(x, y, 22, 0x2e7d4f).setStrokeStyle(3, 0x1f5a37);
-      this.add.circle(x - 7, y - 7, 7, 0x4caf74);
+      const tree = this.add.circle(x, y, 22, 0x23452c).setStrokeStyle(3, 0x17301e);
+      this.add.circle(x - 7, y - 7, 7, 0x2f5c3a);
       trees.add(tree);
     }
 
@@ -78,7 +78,7 @@ class FieldScene extends Phaser.Scene {
     this.time.addEvent({ delay: 1800, loop: true, callback: () => this.wander() });
 
     this.add
-      .text(14, 12, 'Numberwood · โซนฝึกจำนวนเต็ม', { fontFamily: 'Noto Sans Thai, sans-serif', fontSize: '18px', color: '#ffffff' })
+      .text(14, 12, 'Numberwood · โซนฝึกจำนวนเต็ม', { fontFamily: 'IBM Plex Sans Thai, sans-serif', fontSize: '18px', color: '#ffffff' })
       .setShadow(1, 1, '#1b3d2a', 3);
   }
 
@@ -111,13 +111,13 @@ class FieldScene extends Phaser.Scene {
 
   private drawGround() {
     const g = this.add.graphics();
-    g.fillStyle(0x86c46d).fillRect(0, 0, W, H);
+    g.fillStyle(0x3f6b45).fillRect(0, 0, W, H); // dusk meadow
     const rnd = new Phaser.Math.RandomDataGenerator(['grass']);
     for (let i = 0; i < 70; i++) {
-      g.fillStyle(rnd.pick([0x7bb963, 0x93cf79, 0x8bc870]), 1);
+      g.fillStyle(rnd.pick([0x467550, 0x3a623f, 0x4b7d55]), 1);
       g.fillEllipse(rnd.between(0, W), rnd.between(0, H), rnd.between(30, 90), rnd.between(14, 40));
     }
-    g.fillStyle(0xd9c48f, 1).fillRect(0, H / 2 - 18, W, 36); // path
+    g.fillStyle(0xb9a477, 1).fillRect(0, H / 2 - 18, W, 36); // path
     for (let i = 0; i < 25; i++) {
       g.fillStyle(rnd.pick([0xffffff, 0xffe066, 0xff8fab]), 1);
       g.fillCircle(rnd.between(0, W), rnd.between(0, H), 3);
@@ -225,7 +225,7 @@ export function startField(parent: HTMLElement, opts: FieldOptions): FieldHandle
     parent,
     width: W,
     height: H,
-    backgroundColor: '#86c46d',
+    backgroundColor: '#3f6b45',
     physics: { default: 'arcade' },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     scene,

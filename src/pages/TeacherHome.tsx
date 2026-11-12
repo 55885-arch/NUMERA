@@ -22,10 +22,12 @@ export function TeacherHome({ user }: { user: User }) {
 
   return (
     <div className="page">
-      <h1>Teacher Dashboard</h1>
+      <div className="page-head">
+        <h1>ห้องเรียนของฉัน</h1>
+      </div>
       <div className="grid two">
         <section className="card">
-          <h2>ห้องเรียนของฉัน</h2>
+          <h2>ห้องเรียน</h2>
           {classes.length === 0 ? (
             <Empty>ยังไม่มีห้องเรียน สร้างห้องแรกได้จากแบบฟอร์มด้านข้าง</Empty>
           ) : (

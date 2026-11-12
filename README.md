@@ -70,7 +70,7 @@ multi-school leagues.
 
 | Part | Technology |
 |---|---|
-| Web frontend | React 19 + Vite (TypeScript) |
+| Web frontend | React 19 + Vite (TypeScript), lucide icons, IBM Plex Sans Thai / Plex Mono |
 | 2D game | Phaser 3 |
 | Database / Auth | Supabase (PostgreSQL + Auth + Row Level Security) |
 | Server logic | Supabase Edge Functions / Postgres functions (RPC) |
@@ -370,6 +370,28 @@ The login page has demo accounts (1 teacher, 4 students) and a demo class with j
 | `src/data/store.ts` | Browser data store shaped like the Supabase tables in §7 |
 | `src/components/Battle.tsx` | Battle screen shared by Free Field and Dungeon |
 | `src/pages/` | Login, student pages, teacher pages, worksheet print |
+
+### UI direction (unslop)
+
+The interface follows a direction made with [unslop](https://github.com/heydamir/unslop)
+by Damir Sokolovsky ([@heydamir](https://x.com/heydamir)), licensed CC BY 4.0.
+
+| | |
+|---|---|
+| Product | Math practice for ม.1–ม.3: teachers assign dungeons, students solve problems to cast spells |
+| Character | patient, encouraging, a little mischievous |
+| World | a math notebook at dusk: ink, graph paper, pencil |
+| Moments | the drawn monster in battle, the student's own answer, the teacher's "ทั้งห้องติดตรงไหน" chart |
+| Signature | graph paper wherever a student writes an answer (battle answer box, worked solutions, printed worksheets) |
+
+Rules in the code (`src/styles.css`):
+- Students use the **ink** theme (near-black surfaces), teachers the **paper** theme (warm off-white).
+- **One accent**, pencil amber `#e8a33d`, only for the main action, the selection and EXP.
+- **Type:** IBM Plex Sans Thai (400/500) for text, IBM Plex Mono for numbers and figures.
+- **Icons:** lucide line icons, 18 px, stroke 1.5. No emoji anywhere in the UI.
+- **Status** is shown as a dot plus words, never colour alone.
+- **Spacing** is on a 4 px grid.
+- **Copy:** no exclamation marks, no greeting headlines.
 
 ## 11. Status & next steps
 

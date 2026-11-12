@@ -2,33 +2,29 @@ import { useState } from 'react';
 import { answerInRun, finishRoom, runsOf, startRun, useDB, type Assignment, type DB, type DungeonRun, type User } from '../data/store';
 import { generateQuestion, getTopic, templateName, TIER_LABEL } from '../engine';
 import { roomTiers } from '../game/rules';
+import { BookOpen, Check, ChevronLeft, Swords, X } from 'lucide-react';
 import { Battle } from '../components/Battle';
+import { Medal, MONSTER_NAME, type MedalTier, type MonsterKind } from '../components/Art';
 import { Empty, Link, thaiDate } from '../components/ui';
 
 const ROOM_KIND = ['Training', 'Practice', 'Apply', 'Challenge', 'Trial'];
-const ROOM_MONSTERS = [
-  { name: 'ค้างคาวเฝ้าประตู', art: '🦇' },
-  { name: 'โกเลมตัวเลข', art: '🧱' },
-  { name: 'นักเวทเครื่องหมาย', art: '🧙‍♂️' },
-  { name: 'อสูรเงา', art: '👹' },
-  { name: 'อัศวินหอคอย', art: '🛡️' },
-];
-const BOSS = { name: 'Gatekeeper ผู้เฝ้าหอคอย', art: '🐉' };
+const ROOM_MONSTERS: MonsterKind[] = ['slime', 'wisp', 'golem', 'sentinel'];
+const BOSS: MonsterKind = 'drake';
 
 const questionsIn = (a: Assignment, roomIndex: number) => (roomIndex < a.rooms ? a.questionsPerRoom : a.questionsPerRoom + 1);
-const roomLabel = (a: Assignment, i: number) => (i < a.rooms ? `ห้อง ${i + 1}: ${ROOM_KIND[i] ?? 'Room'}` : 'บอส');
+const roomLabel = (a: Assignment, i: number) => (i < a.rooms ? `ห้อง ${i + 1} · ${ROOM_KIND[i] ?? 'Room'}` : 'บอส');
 
 /** Boss Grade (proposal §3.5): based on accuracy, never on speed. */
-function grade(run: DungeonRun): { medal: string; name: string } | null {
+function grade(run: DungeonRun): { tier: MedalTier; name: string } | null {
   if (run.status !== 'passed') return null;
   const pct = (run.correct / Math.max(1, run.total)) * 100;
-  if (pct >= 90) return { medal: '🥇', name: 'Gold' };
-  if (pct >= 75) return { medal: '🥈', name: 'Silver' };
-  return { medal: '🥉', name: 'Bronze' };
+  if (pct >= 90) return { tier: 'gold', name: 'Gold' };
+  if (pct >= 75) return { tier: 'silver', name: 'Silver' };
+  return { tier: 'bronze', name: 'Bronze' };
 }
 
 /** "Reflect" step: what went well and what to practise, by question type. */
-function reflection(db: DB, run: DungeonRun): string {
+function reflection(db: DB, run: DungeonRun): { good: string; practise: string } | null {
   const mine = db.attempts.filter(
     (t) => t.studentId === run.studentId && t.assignmentId === run.assignmentId && t.at >= run.startedAt && (!run.finishedAt || t.at <= run.finishedAt),
   );
@@ -40,15 +36,16 @@ function reflection(db: DB, run: DungeonRun): string {
     byType.set(t.templateId, s);
   }
   const ranked = [...byType.entries()].sort((x, y) => y[1].ok / y[1].all - x[1].ok / x[1].all);
-  if (ranked.length === 0) return '';
+  if (ranked.length === 0) return null;
   const [bestId, best] = ranked[0];
   const [weakId, weak] = ranked[ranked.length - 1];
-  const good = best.ok > 0 ? `จุดที่ทำได้ดีคือ “${templateName(best.topicId, bestId)}”` : '';
-  const practise =
-    weak.ok < weak.all
-      ? `ส่วนที่ควรฝึกเพิ่มคือ “${templateName(weak.topicId, weakId)}” ลองฝึกใน Free Field อีกสักชุดก่อนกลับมาท้าทายใหม่`
-      : 'ทำได้ถูกทุกรูปแบบ ลองท้าทายโจทย์ระดับสูงขึ้นได้เลย';
-  return [good, practise].filter(Boolean).join(' · ');
+  return {
+    good: best.ok > 0 ? `ทำได้ดี · ${templateName(best.topicId, bestId)}` : '',
+    practise:
+      weak.ok < weak.all
+        ? `ควรฝึกเพิ่ม · ${templateName(weak.topicId, weakId)} ลองฝึกใน Free Field อีกสักชุดก่อนท้าทายใหม่`
+        : 'ทำได้ถูกทุกรูปแบบ ลองโจทย์ระดับสูงขึ้นได้',
+  };
 }
 
 export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: string }) {
@@ -61,7 +58,7 @@ export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: 
     return (
       <div className="page narrow">
         <Empty>ไม่พบภารกิจนี้</Empty>
-        <Link to="/student" className="btn">← กลับ Hub</Link>
+        <Link to="/student" className="btn">กลับหน้าหลัก</Link>
       </div>
     );
   }
@@ -74,7 +71,10 @@ export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: 
 
   const header = (
     <div className="dungeon-head">
-      <Link to="/student" className="btn ghost">← กลับ Hub</Link>
+      <Link to="/student" className="btn ghost" >
+        <ChevronLeft className="icon" aria-hidden />
+        กลับ
+      </Link>
       <div>
         <h1>{a.title}</h1>
         <div className="muted small">
@@ -87,9 +87,9 @@ export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: 
   const chips = (current: number | null) => (
     <ol className="rooms">
       {tiers.map((t, i) => (
-        <li key={i} className={current === null ? '' : i < current ? 'done' : i === current ? 'now' : ''}>
-          {current !== null && i < current ? '✔ ' : ''}
-          {roomLabel(a, i)} <span className="muted small">T{t}</span>
+        <li key={i} className={current === null ? '' : i < current ? 'done' : i === current ? 'now' : ''} title={roomLabel(a, i)}>
+          {i < a.rooms ? `ห้อง ${i + 1}` : 'บอส'}
+          <span className="mono">T{t}</span>
         </li>
       ))}
     </ol>
@@ -100,7 +100,7 @@ export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: 
     const count = questionsIn(a, open.roomIndex);
     const base = open.roomIndex * a.questionsPerRoom;
     const isBoss = open.roomIndex >= a.rooms;
-    const monster = isBoss ? BOSS : ROOM_MONSTERS[open.roomIndex % ROOM_MONSTERS.length];
+    const kind = isBoss ? BOSS : ROOM_MONSTERS[open.roomIndex % ROOM_MONSTERS.length];
     const key = `${open.id}-${open.roomIndex}`;
     if (open.questionIndex < count && playingKey !== key) setPlayingKey(key);
     const showBattle = open.questionIndex < count || playingKey === key;
@@ -112,13 +112,13 @@ export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: 
           <section className="card center">
             <h2>{roomLabel(a, open.roomIndex)} เสร็จแล้ว</h2>
             <button className="btn primary" onClick={() => finishRoom(open.id)}>
-              {isBoss ? 'ดูผลภารกิจ' : 'ไปห้องถัดไป →'}
+              {isBoss ? 'ดูผลภารกิจ' : 'ไปห้องถัดไป'}
             </button>
           </section>
         ) : (
           <Battle
             key={key}
-            monster={{ ...monster, level: tiers[open.roomIndex] * 5 }}
+            monster={{ kind, name: MONSTER_NAME[kind], level: tiers[open.roomIndex] * 5 }}
             hitsToDefeat={count}
             totalQuestions={count}
             startIndex={open.questionIndex}
@@ -136,18 +136,47 @@ export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: 
   // ---------------------------------------------------------------- intro / result
   const attemptsLeft = a.maxAttempts - runs.length;
   const medal = last && grade(last);
+  const reflect = last && reflection(db, last);
   return (
     <div className="page narrow">
       {header}
 
       {last && (
         <section className={`card result ${last.status}`}>
-          <div className="big-art" aria-hidden>{last.status === 'passed' ? (medal?.medal ?? '🏆') : '📘'}</div>
-          <h2>{last.status === 'passed' ? `ภารกิจสำเร็จ! เหรียญ ${medal?.name}` : 'ยังไม่ผ่านเกณฑ์ ลองฝึกเพิ่มอีกนิด'}</h2>
-          <p>
-            ทำถูก <strong>{last.correct}/{last.total}</strong> ข้อ (เกณฑ์ผ่าน {a.passPercent}%) · ได้รับ <strong>+{last.exp} EXP</strong>
-          </p>
-          <p>{reflection(db, last)}</p>
+          <div className="big-art">
+            {medal ? <Medal tier={medal.tier} size={104} /> : <BookOpen className="icon" style={{ width: 40, height: 40 }} aria-hidden />}
+          </div>
+          <h2>{medal ? `ผ่านภารกิจ · เหรียญ ${medal.name}` : 'ยังไม่ผ่านเกณฑ์ ลองฝึกเพิ่มอีกนิด'}</h2>
+          <div className="result-figures">
+            <div>
+              <span className="small muted">ทำถูก</span>
+              <strong>
+                {last.correct}/{last.total}
+              </strong>
+            </div>
+            <div>
+              <span className="small muted">เกณฑ์ผ่าน</span>
+              <strong>{a.passPercent}%</strong>
+            </div>
+            <div>
+              <span className="small muted">ได้รับ EXP</span>
+              <strong>+{last.exp}</strong>
+            </div>
+          </div>
+          {reflect && (
+            <div style={{ display: 'grid', gap: 8, textAlign: 'left' }}>
+              {reflect.good && (
+                <p className="feedback good">
+                  <Check className="icon" aria-hidden />
+                  {reflect.good}
+                </p>
+              )}
+              <p className="feedback info">
+                <BookOpen className="icon" aria-hidden />
+                {reflect.practise}
+              </p>
+            </div>
+          )}
         </section>
       )}
 
@@ -159,7 +188,13 @@ export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: 
           <li>ตอบผิดไม่เสีย EXP มีคำใบ้ 3 ขั้น ถ้ายังไม่ได้จะแสดงวิธีทำแล้วไปข้อต่อไป</li>
           <li>เนื้อหาและระดับกำหนดโดยครู ไม่เปลี่ยนตาม Character Level</li>
         </ul>
-        {error && <p className="feedback bad" role="alert">✘ {error}</p>}
+        {error && (
+          <p className="feedback bad" role="alert">
+            <X className="icon" aria-hidden />
+            {error}
+          </p>
+        )}
+        <div style={{ marginTop: 16 }} />
         {attemptsLeft > 0 ? (
           <button
             className="btn primary"
@@ -168,7 +203,8 @@ export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: 
               setError(r.error ?? null);
             }}
           >
-            {runs.length === 0 ? 'เริ่มภารกิจ ⚔️' : `ท้าทายอีกครั้ง (เหลือ ${attemptsLeft} ครั้ง)`}
+            <Swords className="icon" aria-hidden />
+            {runs.length === 0 ? 'เริ่มภารกิจ' : `ท้าทายอีกครั้ง · เหลือ ${attemptsLeft} ครั้ง`}
           </button>
         ) : (
           <p className="muted">ใช้สิทธิ์ครบ {a.maxAttempts} ครั้งแล้ว ฝึกต่อใน Free Field ได้เสมอ</p>
