@@ -70,7 +70,7 @@ multi-school leagues.
 
 | Part | Technology |
 |---|---|
-| Web frontend | React + Vite (TypeScript) |
+| Web frontend | React 19 + Vite (TypeScript) |
 | 2D game | Phaser 3 |
 | Database / Auth | Supabase (PostgreSQL + Auth + Row Level Security) |
 | Server logic | Supabase Edge Functions / Postgres functions (RPC) |
@@ -316,14 +316,75 @@ must be trial-ready by early ธ.ค. 2569. Gemini hints, rank and Codex move to
 
 Draft answers for the group worksheet (sections 1–8): [`docs/school-worksheet-draft.md`](docs/school-worksheet-draft.md).
 
-## 10. Status & next steps
+## 10. Prototype v0.1 (in this repo)
+
+A working first prototype. It runs fully in the browser, so it can be shown to
+teachers and classmates straight away.
+
+```bash
+npm install
+```
+
+```bash
+npm run dev
+```
+
+Then open the address it prints (usually http://localhost:5173). Other commands:
+`npm test` (question and rule tests) and `npm run build` (production build into `dist/`).
+
+The login page has demo accounts (1 teacher, 4 students) and a demo class with join code `INT692`.
+
+### What works
+
+| Area | In the prototype |
+|---|---|
+| Question Engine | Topic **จำนวนเต็ม (ม.1)**: 6 question types, Tiers T1–T4, 3 hints, worked solution, messages for common mistakes. Tests generate 2,000 questions and re-check every answer |
+| Student | Join a class by code · Character Level / EXP · Topic Mastery · Quest Board · Learning Record |
+| Free Field | 2D map (Phaser 3): walk with arrows / WASD / tap, meet monsters, monster level and question Tier follow Character Level |
+| Math combat | Answer to cast a spell · wrong answer opens the next hint (3 levels) then the full solution · never removes EXP |
+| Dungeon | Teacher sets unit, max Tier, questions per room, pass %, due date, attempts · 3 rooms + boss · progress is saved, refresh and continue · Bronze/Silver/Gold grade · reflection message |
+| Teacher | Create class (year / semester / grade / course) · Dungeon Builder · attendance (มา/สาย/ขาด/ลา) · report per student and per question type |
+| Paper Mode | A4 worksheet from the same question bank · separate teacher answer key · tick-box score entry that gives EXP/Mastery by the same rules · add students who have no device |
+| Anti-farming | Repeating a solved question gives 20% EXP, then 0 after 3 repeats |
+
+### Limits of this prototype (important)
+
+- **Data lives in one browser only** (localStorage). A teacher and a student on
+  different devices do **not** see each other's data yet. A real class trial needs
+  the Supabase step below.
+- **No passwords** and no real accounts yet (Supabase Auth later).
+- **Answers and EXP are checked in the browser.** Decision D3 (check on the server)
+  is not done yet, so scores could be faked. Fine for a demo, not for ranking.
+- Not built yet: Gemini hints, rank/seasons, Monster Codex, Bounty Board, more topics,
+  real art and sound.
+- The curriculum reference shown (`ค 1.1 ม.1/1`) and all question content must be
+  **checked by a math teacher** before use with students.
+
+### Code map
+
+| Path | What it is |
+|---|---|
+| `src/engine/` | Question Engine: templates, generator, answer checking, tests |
+| `src/game/rules.ts` | EXP, levels, Mastery, Free Field tier, dungeon room tiers (pure functions, ready to move to the server) |
+| `src/game/field.ts` | Phaser 3 Free Field scene |
+| `src/data/store.ts` | Browser data store shaped like the Supabase tables in §7 |
+| `src/components/Battle.tsx` | Battle screen shared by Free Field and Dungeon |
+| `src/pages/` | Login, student pages, teacher pages, worksheet print |
+
+## 11. Status & next steps
 
 - [x] Proposal read and summarised
 - [x] System diagrams reviewed and corrected (server-side checks, paper → progress, hint limit, statuses)
 - [x] AI hint design decided (Gemini as coach, rule-based fallback)
-- [ ] Confirm Gemini terms / school permission (§6)
-- [ ] Project skeleton: React + Vite + TS, Phaser, Supabase schema + RLS
-- [ ] Question Engine first topics: integers, fractions, linear equations
+- [x] Project skeleton: React + Vite + TS, Phaser
+- [x] Question Engine, first topic: integers (จำนวนเต็ม)
+- [x] Prototype v0.1: Free Field, Dungeon, Teacher Dashboard, Paper Mode (single browser)
+- [ ] Math teacher reviews the integer questions, hints and solutions
+- [ ] Supabase: schema + RLS + Auth, so teacher and students share data across devices
+- [ ] Move answer checking and EXP to the server (D3)
+- [ ] Put the site online for the ธ.ค. 2569 class trial
+- [ ] Confirm Gemini terms / school permission (§6), then AI hints
+- [ ] More topics: fractions, linear equations
 
 ## References
 
