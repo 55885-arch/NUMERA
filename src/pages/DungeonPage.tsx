@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { answerInRun, finishRoom, runsOf, startRun, useDB, type Assignment, type DB, type DungeonRun, type User } from '../data/store';
+import { answerInRun, finishRoom, runsOf, startRun, studentLevel, useDB, type Assignment, type DB, type DungeonRun, type User } from '../data/store';
 import { generateQuestion, getTopic, templateName, TIER_LABEL } from '../engine';
 import { roomTiers } from '../game/rules';
 import { BookOpen, Check, ChevronLeft, Swords, X } from 'lucide-react';
@@ -119,6 +119,7 @@ export function DungeonPage({ user, assignmentId }: { user: User; assignmentId: 
           <Battle
             key={key}
             monster={{ kind, name: MONSTER_NAME[kind], level: tiers[open.roomIndex] * 5 }}
+            player={{ name: user.name, ...studentLevel(db, user.id) }}
             hitsToDefeat={count}
             totalQuestions={count}
             startIndex={open.questionIndex}

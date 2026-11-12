@@ -115,6 +115,40 @@ export function Monster({ kind, size = 96, label }: { kind: MonsterKind; size?: 
   );
 }
 
+/** The player's wizard, seen from behind, facing the opponent (battle scene). */
+export function WizardBack({ size = 140 }: { size?: number }) {
+  const id = useId().replace(/:/g, '');
+  return (
+    <svg width={size} height={size} viewBox="0 0 140 140" role="img" aria-label="ตัวละครของคุณ">
+      <defs>
+        <linearGradient id={`${id}-robe`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#6d86ff" />
+          <stop offset="1" stopColor="#2f44b8" />
+        </linearGradient>
+        <linearGradient id={`${id}-hat`} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#8b63f0" />
+          <stop offset="1" stopColor="#4a2aa8" />
+        </linearGradient>
+      </defs>
+      {/* staff raised toward the opponent */}
+      <path d="M98 112 L124 30" stroke="#8a6a45" strokeWidth="5" strokeLinecap="round" />
+      <circle cx="125" cy="26" r="8" fill="#e8a33d" />
+      <circle cx="122" cy="23" r="3" fill="#fff1c2" />
+      {/* robe from behind */}
+      <path d="M36 140 C36 100 46 76 70 74 C94 76 104 100 104 140 Z" fill={`url(#${id}-robe)`} />
+      <path d="M70 80 C66 100 64 120 66 140 M58 92 C54 108 52 124 52 140" stroke="#2a3a9c" strokeWidth="2" fill="none" opacity="0.6" />
+      {/* arm reaching to the staff */}
+      <path d="M92 94 C100 100 104 106 100 112" stroke="#3b52cc" strokeWidth="11" strokeLinecap="round" fill="none" />
+      <circle cx="100" cy="112" r="6" fill="#ffd9b3" />
+      {/* hair and hat */}
+      <ellipse cx="70" cy="70" rx="20" ry="14" fill="#5a3b2e" />
+      <ellipse cx="70" cy="62" rx="34" ry="9" fill="#3a2296" />
+      <path d="M40 62 C52 40 60 16 76 6 C80 26 90 46 100 62 Z" fill={`url(#${id}-hat)`} />
+      <path d="M44 58 C58 54 84 54 98 58 L97 64 C84 60 58 60 45 64 Z" fill="#e8a33d" />
+    </svg>
+  );
+}
+
 export type MedalTier = 'gold' | 'silver' | 'bronze';
 
 const METAL: Record<MedalTier, [string, string, string]> = {

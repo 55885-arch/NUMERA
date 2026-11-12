@@ -70,6 +70,7 @@ export function FieldPage({ user }: { user: User }) {
           <div className="overlay">
             <Battle
               monster={{ kind: MONSTERS[encounter.tier], name: MONSTER_NAME[MONSTERS[encounter.tier]], level: encounter.level }}
+              player={{ name: user.name, level: lv.level, into: lv.into, need: lv.need }}
               hitsToDefeat={3}
               makeQuestion={(i) => generateQuestion('INT', encounter.tier, encounter.seed + i)}
               onQuestionDone={(question, correct, hintsUsed) =>
